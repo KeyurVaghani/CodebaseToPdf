@@ -18,10 +18,20 @@ class PDF(FPDF):
         self.multi_cell(0, 10, txt)
         self.ln()
 
-def create_pdf(root_dir, output_path):
+def create_pdf(root_dir, output_path, excluded_files=None, excluded_dirs=None):
+    if excluded_files is None:
+        excluded_files = []
+    if excluded_dirs is None:
+        excluded_dirs = []
+
     pdf = PDF()
     for dirpath, dirnames, filenames in os.walk(root_dir):
+        # Skip excluded directories
+        dirnames[:] = [d for d in dirnames if os.path.join(dirpath, d) not in excluded_dirs]
+        
         for filename in filenames:
+            if filename in excluded_files:
+                continue  # Skip the files in the excluded list
             file_path = os.path.join(dirpath, filename)
             pdf.add_page()
             pdf.chapter_title(file_path)
@@ -29,4 +39,6 @@ def create_pdf(root_dir, output_path):
     pdf.output(output_path, 'F')
 
 # Usage:
-create_pdf('SOURCE FOLDER PATH', 'output.pdf')
+excluded_files = []  # List of files to exclude
+excluded_dirs = ['.git','.DS_Store']  # List of directories to exclude
+create_pdf('<PUT FOLDER PATH HERE>', 'output.pdf', excluded_files, excluded_dirs)
